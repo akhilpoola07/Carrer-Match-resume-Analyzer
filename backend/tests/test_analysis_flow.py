@@ -21,6 +21,21 @@ def def_client(tmp_path):
 
 
 def test_resume_upload_and_analysis_flow(def_client, monkeypatch):
+    health = def_client.get("/api/health")
+    assert health.status_code == 200
+    assert health.json == {"status": "ok"}
+
+    cors_preflight = def_client.options(
+        "/api/analyses",
+        headers={
+            "Origin": "http://127.0.0.1:5175",
+            "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Headers": "authorization,content-type",
+        },
+    )
+    assert cors_preflight.status_code == 200
+    assert cors_preflight.headers["Access-Control-Allow-Origin"] == "http://127.0.0.1:5175"
+
     extracted_text = (
         "Jordan Example\nSoftware Engineer\nPython, SQL, React, AWS\n"
         "Bachelor of Science in Computer Science\n"
@@ -186,3 +201,31 @@ def test_resume_upload_and_analysis_flow(def_client, monkeypatch):
     deleted = def_client.delete(f"/api/analyses/{analysis_id}", headers=headers)
     assert deleted.status_code == 200
     assert def_client.get(f"/api/analyses/{analysis_id}", headers=headers).status_code == 404
+
+
+def test_production_cors_allows_only_configured_frontend(tmp_path):
+    class IsolatedProductionConfig(TestConfig):
+        IS_PRODUCTION = True
+        FRONTEND_URL = "https://career-match.example"
+        UPLOAD_FOLDER = str(tmp_path)
+
+    app = create_app(IsolatedProductionConfig)
+    client = app.test_client()
+
+    allowed = client.options(
+        "/api/health",
+        headers={
+            "Origin": "https://career-match.example",
+            "Access-Control-Request-Method": "GET",
+        },
+    )
+    assert allowed.headers["Access-Control-Allow-Origin"] == "https://career-match.example"
+
+    denied = client.options(
+        "/api/health",
+        headers={
+            "Origin": "https://untrusted.example",
+            "Access-Control-Request-Method": "GET",
+        },
+    )
+    assert "Access-Control-Allow-Origin" not in denied.headers

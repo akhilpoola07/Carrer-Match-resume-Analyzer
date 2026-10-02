@@ -1,6 +1,21 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+const configuredApiUrl = import.meta.env.VITE_API_URL?.trim();
+if (import.meta.env.PROD) {
+  if (!configuredApiUrl) {
+    throw new Error('VITE_API_URL must point to the production API before building the frontend.');
+  }
+  let productionUrl: URL;
+  try {
+    productionUrl = new URL(configuredApiUrl);
+  } catch {
+    throw new Error('VITE_API_URL must be an absolute HTTPS URL in production.');
+  }
+  if (productionUrl.protocol !== 'https:' || ['localhost', '127.0.0.1', '::1'].includes(productionUrl.hostname)) {
+    throw new Error('VITE_API_URL must use HTTPS and cannot point to a local address in production.');
+  }
+}
+const API_BASE_URL = configuredApiUrl || (import.meta.env.DEV ? 'http://localhost:5001' : '');
 
 const api = axios.create({
   baseURL: API_BASE_URL,

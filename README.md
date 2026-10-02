@@ -163,6 +163,20 @@ supabase/
 - Never commit real secrets. Use a strong `JWT_SECRET` outside local development.
 - If using a different API port, set `VITE_API_URL` to the same host and port before starting Vite.
 
+## 🚀 Production Deployment
+
+Build the frontend with `VITE_API_URL` set to the HTTPS URL of the deployed Flask API. Production builds fail if this value is missing, uses HTTP, or points to localhost.
+
+Run the backend with the WSGI server already included in `backend/requirements.txt`:
+
+```bash
+gunicorn --bind 0.0.0.0:$PORT run:app
+```
+
+Set `APP_ENV=production`, `DATABASE_URL`, `JWT_SECRET`, `FRONTEND_URL`, and `UPLOAD_FOLDER` in the hosting platform. `FRONTEND_URL` must be the HTTPS frontend origin. `UPLOAD_FOLDER` must be an absolute path on persistent storage. Set `PORT` from the hosting platform; Gemini suggestions are optional and use `GEMINI_API_KEY` when available.
+
+The checked-in environment is configured for local SQLite and local file uploads, and no hosting-platform configuration or production database/storage target is present. Do not deploy with the development database or an ephemeral upload directory. Configure the production database and persistent storage first; then the backend can be deployed before the frontend.
+
 ## 🤝 Contributing
 
 Issues and pull requests are welcome. Please include a clear description of the change and relevant test results.
