@@ -19,9 +19,6 @@ const API_BASE_URL = configuredApiUrl || (import.meta.env.DEV ? 'http://localhos
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
 });
 
 // Add JWT token to requests
@@ -123,11 +120,7 @@ export const resumesAPI = {
   upload: async (file: File) => {
     const formData = new FormData();
     formData.append('file', file);
-    const response = await api.post('/api/resumes', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+    const response = await api.post('/api/resumes', formData);
     return response.data;
   },
 

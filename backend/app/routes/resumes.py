@@ -9,6 +9,7 @@ from app.services.pdf_service import extract_text_from_pdf
 from app.utils.responses import success_response, error_response
 
 resumes_bp = Blueprint("resumes", __name__)
+MAX_RESUME_SIZE_BYTES = 5 * 1024 * 1024
 
 
 @resumes_bp.route("", methods=["POST"])
@@ -43,8 +44,8 @@ def upload_resume():
         file_bytes = file.read()
         if not file_bytes:
             return error_response("Empty file uploaded.", 400)
-        if not file_bytes.startswith(b"%PDF-"):
-            return error_response("Corrupted or invalid PDF file.", 400)
+        if len(file_bytes) > MAX_RESUME_SIZE_BYTES:
+            return error_response("Resume file exceeds the 5 MB limit.", 413)
         extracted_text = extract_text_from_pdf(file_bytes)
         with open(filepath, "wb") as stored_file:
             stored_file.write(file_bytes)

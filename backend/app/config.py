@@ -41,7 +41,7 @@ class Config:
         raise RuntimeError("Production FRONTEND_URL origins must use HTTPS.")
     FRONTEND_URL = _frontend_url or "http://localhost:5173"
     GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-    MAX_CONTENT_LENGTH = 5 * 1024 * 1024  # 5 MB
+    MAX_CONTENT_LENGTH = 6 * 1024 * 1024  # 5 MB file plus multipart request overhead
     _upload_folder = os.getenv("UPLOAD_FOLDER")
     if IS_PRODUCTION and (not _upload_folder or not os.path.isabs(_upload_folder)):
         raise RuntimeError("UPLOAD_FOLDER must be an absolute persistent-storage path in production.")

@@ -44,7 +44,8 @@ def test_resume_upload_and_analysis_flow(def_client, monkeypatch):
 
     def extract_pdf(file_bytes):
         assert isinstance(file_bytes, bytes)
-        assert file_bytes.startswith(b"%PDF-")
+        if b"%PDF-" not in file_bytes[:1024]:
+            raise ValueError("Corrupted or invalid PDF file.")
         return extracted_text
 
     monkeypatch.setattr("app.routes.resumes.extract_text_from_pdf", extract_pdf)
@@ -106,7 +107,7 @@ def test_resume_upload_and_analysis_flow(def_client, monkeypatch):
 
     upload = def_client.post(
         "/api/resumes",
-        data={"file": (BytesIO(b"%PDF-test"), "jordan-resume.pdf")},
+        data={"file": (BytesIO(b"Generated preamble\n%PDF-test"), "jordan-resume.pdf")},
         content_type="multipart/form-data",
         headers=headers,
     )
@@ -142,6 +143,14 @@ def test_resume_upload_and_analysis_flow(def_client, monkeypatch):
         headers=headers,
     )
     assert empty_upload.status_code == 400
+
+    oversized_upload = def_client.post(
+        "/api/resumes",
+        data={"file": (BytesIO(b"%PDF-" + b"x" * (5 * 1024 * 1024)), "oversized.pdf")},
+        content_type="multipart/form-data",
+        headers=headers,
+    )
+    assert oversized_upload.status_code == 413
 
     analysis_response = def_client.post(
         "/api/analyses",

@@ -41,60 +41,63 @@ A full-stack resume analysis app that compares a PDF resume with a job descripti
 
 ### Prerequisites
 
-- Node.js 18 or newer and npm
+- Node.js 18 or newer with npm
 - Python 3.10 or newer
-- PostgreSQL only if you prefer it over the default SQLite database
+- PostgreSQL is optional; local development uses SQLite
 
-### 1. Start the backend
+### 1. Start the backend (Terminal 1)
+
+From the project root:
 
 ```bash
 cd backend
-python -m venv .venv
+python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
-```
-
-Set the backend port to `5001` in `backend/.env` to match the frontend's default API URL. For local SQLite, use:
-
-```dotenv
-PORT=5001
-DATABASE_URL=sqlite:///careermatch_ai.db
-JWT_SECRET=replace-with-a-long-random-secret
-GEMINI_API_KEY=
-FRONTEND_URL=http://localhost:5173
-APP_ENV=development
-```
-
-Then start Flask:
-
-```bash
 python run.py
 ```
 
-The API will be available at `http://localhost:5001`. The application creates database tables on startup. To use PostgreSQL, replace `DATABASE_URL` with your PostgreSQL connection string.
+The example configuration uses SQLite and starts the API at `http://localhost:5001`. It creates the database tables automatically. Check that the API is ready:
 
-### 2. Start the frontend
+```bash
+curl http://localhost:5001/api/health
+```
 
-In a second terminal, from the project root:
+The expected response is `{"status":"ok"}`. For Windows PowerShell, replace the virtual-environment activation and copy commands with:
+
+```powershell
+cd backend
+py -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+Copy-Item .env.example .env
+python run.py
+```
+
+### 2. Start the frontend (Terminal 2)
+
+From the project root, install dependencies and create `.env.local`:
 
 ```bash
 npm ci
 ```
 
-Create a root `.env.local` if the API is not running at the default URL:
+Put this in the root `.env.local` file:
 
 ```dotenv
 VITE_API_URL=http://localhost:5001
 ```
 
-Then run Vite:
+Start the frontend:
 
 ```bash
 npm run dev
 ```
 
-Open the local URL printed by Vite (by default, `http://localhost:5173`).
+Open `http://localhost:5173`. Keep both terminals running while using the app.
+
+If you change the backend port in `backend/.env`, update `VITE_API_URL` in `.env.local` to the same port, then restart Vite. For example, if the API uses port `5002`, set `VITE_API_URL=http://localhost:5002`.
 
 ## 🧭 Typical Workflow
 
